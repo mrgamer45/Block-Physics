@@ -1,5 +1,5 @@
 name: Block-Physics
-main: me.hypercodec.physics.Main
+main: me.hypercodec.physics.BlockPhysics
 version: 1.8
 author: HyperCodec
 api-version: 1.21.4

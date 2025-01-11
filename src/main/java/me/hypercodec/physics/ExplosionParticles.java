@@ -26,15 +26,15 @@ public class ExplosionParticles implements CommandExecutor, TabCompleter {
             }
 
             if(args.length == 0) {
-                if (((Player) sender).getPersistentDataContainer().has(Main.explosionparticleskey, PersistentDataType.INTEGER)) {
-                    ((Player) sender).getPersistentDataContainer().remove(Main.explosionparticleskey);
+                if (((Player) sender).getPersistentDataContainer().has(BlockPhysics.explosionparticleskey, PersistentDataType.INTEGER)) {
+                    ((Player) sender).getPersistentDataContainer().remove(BlockPhysics.explosionparticleskey);
 
                     sender.sendMessage("Realistic explosion particles toggled " + ChatColor.RED + "off");
 
                     return true;
                 }
 
-                ((Player) sender).getPersistentDataContainer().set(Main.explosionparticleskey, PersistentDataType.INTEGER, 1);
+                ((Player) sender).getPersistentDataContainer().set(BlockPhysics.explosionparticleskey, PersistentDataType.INTEGER, 1);
 
                 sender.sendMessage("Explosion particles toggled " + ChatColor.GREEN + "on");
 
@@ -42,7 +42,7 @@ public class ExplosionParticles implements CommandExecutor, TabCompleter {
             }
 
             if(args[0].equalsIgnoreCase("enable")) {
-                ((Player) sender).getPersistentDataContainer().set(Main.explosionparticleskey, PersistentDataType.INTEGER, 1);
+                ((Player) sender).getPersistentDataContainer().set(BlockPhysics.explosionparticleskey, PersistentDataType.INTEGER, 1);
 
                 sender.sendMessage("Realistic explosion particles " + ChatColor.GREEN + "enabled");
 
@@ -50,7 +50,7 @@ public class ExplosionParticles implements CommandExecutor, TabCompleter {
             }
 
             if(args[0].equalsIgnoreCase("disable")) {
-                ((Player) sender).getPersistentDataContainer().remove(Main.explosionparticleskey);
+                ((Player) sender).getPersistentDataContainer().remove(BlockPhysics.explosionparticleskey);
 
                 sender.sendMessage("Realistic explosion particles " + ChatColor.RED + "disabled");
 
