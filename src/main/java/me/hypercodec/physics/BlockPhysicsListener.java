@@ -1,13 +1,16 @@
 package me.hypercodec.physics;
 
 import com.jeff_media.customblockdata.CustomBlockData;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.TileState;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Snowable;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.FallingBlock;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.*;
@@ -20,6 +23,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 
@@ -29,22 +33,24 @@ public class BlockPhysicsListener implements Listener {
         UUID uuid = UUID.randomUUID();
         Main.iterations.put(uuid, 0);
 
-        if (Main.plugin.getConfig().getInt("maxaffectedblocks") != 0) {
+        final int maxAffectedBlocks = Main.config.getInt("maxaffectedblocks");
+        if (maxAffectedBlocks != 0) {
             new BukkitRunnable() {
                 @Override
                 public void run() {
                     Main.iterations.remove(uuid);
-                    this.cancel();
                 }
-            }.runTaskLater(Main.plugin, Main.plugin.getConfig().getInt("maxaffectedblocks") + 20);
+            }.runTaskLater(Main.plugin, maxAffectedBlocks + 20);
         }
-        if (!event.getPlayer().isSneaking() || !Main.plugin.getConfig().getBoolean("shiftignorephysics") && event.getPlayer().hasPermission("blockphysics.shiftclick")) {
-            Main.updateBlock(event.getBlock(), true, uuid);
+
+        Block block = event.getBlock();
+        if (!event.getPlayer().isSneaking() || !Main.config.getBoolean("shiftignorephysics") && event.getPlayer().hasPermission("blockphysics.shiftclick")) {
+            Main.updateBlock(block, true, uuid);
             return;
         }
 
-        new CustomBlockData(event.getBlock(), Main.plugin).set(Main.ignorephysicskey, PersistentDataType.INTEGER, 1);
-        Main.updateBlock(event.getBlock(), false, uuid);
+        new CustomBlockData(block, Main.plugin).set(Main.ignorephysicskey, PersistentDataType.INTEGER, 1);
+        Main.updateBlock(block, false, uuid);
     }
 
     @EventHandler(ignoreCancelled = true)
@@ -53,14 +59,15 @@ public class BlockPhysicsListener implements Listener {
 
         UUID uuid = UUID.randomUUID();
         Main.iterations.put(uuid, 0);
-        if (Main.plugin.getConfig().getInt("maxaffectedblocks") != 0) {
+
+        final int maxAffectedBlocks = Main.config.getInt("maxaffectedblocks");
+        if (maxAffectedBlocks != 0) {
             new BukkitRunnable() {
                 @Override
                 public void run() {
                     Main.iterations.remove(uuid);
-                    this.cancel();
                 }
-            }.runTaskLater(Main.plugin, Main.plugin.getConfig().getInt("maxaffectedblocks") + 20);
+            }.runTaskLater(Main.plugin, maxAffectedBlocks + 20);
         }
         Main.updateBlock(event.getBlock(), false, uuid);
     }
@@ -70,14 +77,15 @@ public class BlockPhysicsListener implements Listener {
         if(event.getEntity() instanceof FallingBlock) {
             if(event.getEntity().getPersistentDataContainer().has(Main.eventidkey, PersistentDataType.STRING) && Main.plugin.getConfig().getBoolean("fallingblocksupdate") && Main.plugin.getConfig().getBoolean("chainupdates")) {
                 UUID uuid = UUID.fromString(event.getEntity().getPersistentDataContainer().get(Main.eventidkey, PersistentDataType.STRING));
-                if(Main.plugin.getConfig().getInt("maxaffectedblocks") != 0) {
+
+                final int maxAffectedBlocks = Main.config.getInt("maxaffectedblocks");
+                if(maxAffectedBlocks != 0) {
                     new BukkitRunnable() {
                         @Override
                         public void run() {
                             Main.iterations.remove(uuid);
-                            this.cancel();
                         }
-                    }.runTaskLater(Main.plugin, Main.plugin.getConfig().getInt("maxaffectedblocks") + 20);
+                    }.runTaskLater(Main.plugin, maxAffectedBlocks + 20);
                 }
                 Main.updateBlock(event.getBlock(), false, uuid);
             }
@@ -92,7 +100,7 @@ public class BlockPhysicsListener implements Listener {
 
             for(Block block : event.blockList()) {
                 if(!Main.unstableblocks.contains(block.getType()) && !Main.stableblocks.contains(block.getType()) && block.getType() != Material.TNT) {
-                    Vector yeetvec = event.getLocation().toVector().subtract(block.getLocation().toVector()).multiply(10).normalize();
+                    Vector launchVec = event.getLocation().toVector().subtract(block.getLocation().toVector()).multiply(10).normalize();
 
                     BlockData data = block.getBlockData();
 
@@ -110,7 +118,7 @@ public class BlockPhysicsListener implements Listener {
                     fb.getPersistentDataContainer().set(Main.eventidkey, PersistentDataType.STRING, uuid.toString());
                     fb.getPersistentDataContainer().set(Main.explodedkey, PersistentDataType.INTEGER, 1);
                     fb.setHurtEntities(true);
-                    fb.setVelocity(yeetvec);
+                    fb.setVelocity(launchVec);
 
                     Main.iterations.put(uuid, Main.iterations.get(uuid) + 1);
 
@@ -121,16 +129,19 @@ public class BlockPhysicsListener implements Listener {
     }
 
     @EventHandler
-    public void onBlockExplode(BlockExplodeEvent event) {if(Main.plugin.getConfig().getBoolean("realisticexplosions")) {event.setCancelled(true);}}
+    public void onBlockExplode(BlockExplodeEvent event) {if(Main.config.getBoolean("realisticexplosions")) event.setCancelled(true);}
 
     @EventHandler(ignoreCancelled = true)
-    public void onEntityDropItem(EntityDropItemEvent event) {
+    public void onEntityDropItem(@NotNull EntityDropItemEvent event) {
         if(event.getEntity().getType() == EntityType.FALLING_BLOCK && !Main.plugin.getConfig().getBoolean("unsolidblocksbreakfbs") && !(event.getEntity().getLocation().getBlock().getState() instanceof TileState)) {
             try {
                 event.setCancelled(true);
-                event.getEntity().getLocation().getWorld().dropItemNaturally(event.getEntity().getLocation(), new ItemStack(event.getEntity().getLocation().getBlock().getType()));
-                event.getEntity().getLocation().getBlock().getLocation().getBlock().setBlockData(((FallingBlock) event.getEntity()).getBlockData());
-                event.getEntity().remove();
+                Entity ent = event.getEntity();
+                Location loc = ent.getLocation();
+                loc.getWorld().dropItemNaturally(event.getEntity().getLocation(), new ItemStack(event.getEntity().getLocation().getBlock().getType()));
+                // TODO round down instead of doing all this weird bs
+                loc.getBlock().getLocation().getBlock().setBlockData(((FallingBlock) event.getEntity()).getBlockData());
+                ent.remove();
             }
             catch(IllegalArgumentException ignored) {}
         }
@@ -138,22 +149,27 @@ public class BlockPhysicsListener implements Listener {
 
     @EventHandler(ignoreCancelled = true)
     public void onProjectileHit(ProjectileHitEvent event) {
-        if(Main.plugin.getConfig().getBoolean("projectilesupdate") && event.getHitBlock() != null) {
+        if(Main.config.getBoolean("projectilesupdate") && event.getHitBlock() != null) {
             UUID uuid = UUID.randomUUID();
             Main.iterations.put(uuid, 0);
-            if (Main.plugin.getConfig().getInt("maxaffectedblocks") != 0) {
+
+            final int maxAffectedBlocks = Main.config.getInt("maxaffectedblocks");
+            if (maxAffectedBlocks != 0) {
                 new BukkitRunnable() {
                     @Override
                     public void run() {
                         Main.iterations.remove(uuid);
-                        this.cancel();
                     }
-                }.runTaskLater(Main.plugin, Main.plugin.getConfig().getInt("maxaffectedblocks") + 20);
+                }.runTaskLater(Main.plugin, maxAffectedBlocks + 20);
             }
             Main.updateBlock(event.getHitBlock(), true, uuid);
         }
     }
 
     @EventHandler
-    public void onPlayerJoin(PlayerJoinEvent event) {if(!event.getPlayer().hasPlayedBefore() && Main.plugin.getConfig().getBoolean("explosionparticlesdefault")) {event.getPlayer().getPersistentDataContainer().set(Main.explosionparticleskey, PersistentDataType.INTEGER, 1);}}
+    public void onPlayerJoin(@NotNull PlayerJoinEvent event) {
+        Player player = event.getPlayer();
+        if(!player.hasPlayedBefore() && Main.config.getBoolean("explosionparticlesdefault"))
+            player.getPersistentDataContainer().set(Main.explosionparticleskey, PersistentDataType.INTEGER, 1);
+    }
 }
