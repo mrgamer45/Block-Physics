@@ -1,8 +1,0 @@
-<component name="ArtifactManager">
-  <artifact type="jar" name="Block Physics:jar">
-    <output-path>$PROJECT_DIR$/../../Server 3/plugins</output-path>
-    <root id="archive" name="Block Physics.jar">
-      <element id="module-output" name="Block Physics" />
-    </root>
-  </artifact>
-</component>
