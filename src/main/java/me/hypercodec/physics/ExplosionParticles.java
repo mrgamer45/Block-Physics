@@ -6,35 +6,39 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
+import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.util.StringUtil;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
 public class ExplosionParticles implements CommandExecutor, TabCompleter {
     @Override
-    public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
+    public boolean onCommand(CommandSender sender, Command cmd, @NotNull String label, String[] args) {
         if(label.equalsIgnoreCase("explosionparticles") || label.equalsIgnoreCase("ep")) {
             if(!sender.hasPermission("blockphysics.changegraphics")) {
                 sender.sendMessage(ChatColor.RED + "You do not have permission to use this command");
                 return true;
             }
 
-            if(!(sender instanceof Player)) {
+            if(!(sender instanceof Player player)) {
                 sender.sendMessage(ChatColor.RED + "Console cannot view explosion particles");
                 return true;
             }
 
+            PersistentDataContainer pdc = player.getPersistentDataContainer();
+
             if(args.length == 0) {
-                if (((Player) sender).getPersistentDataContainer().has(Main.explosionparticleskey, PersistentDataType.INTEGER)) {
-                    ((Player) sender).getPersistentDataContainer().remove(Main.explosionparticleskey);
+                if(pdc.has(BlockPhysics.explosionparticleskey, PersistentDataType.INTEGER)) {
+                    pdc.remove(BlockPhysics.explosionparticleskey);
 
                     sender.sendMessage("Realistic explosion particles toggled " + ChatColor.RED + "off");
 
                     return true;
                 }
 
-                ((Player) sender).getPersistentDataContainer().set(Main.explosionparticleskey, PersistentDataType.INTEGER, 1);
+                pdc.set(BlockPhysics.explosionparticleskey, PersistentDataType.INTEGER, 1);
 
                 sender.sendMessage("Explosion particles toggled " + ChatColor.GREEN + "on");
 
@@ -42,7 +46,7 @@ public class ExplosionParticles implements CommandExecutor, TabCompleter {
             }
 
             if(args[0].equalsIgnoreCase("enable")) {
-                ((Player) sender).getPersistentDataContainer().set(Main.explosionparticleskey, PersistentDataType.INTEGER, 1);
+                pdc.set(BlockPhysics.explosionparticleskey, PersistentDataType.INTEGER, 1);
 
                 sender.sendMessage("Realistic explosion particles " + ChatColor.GREEN + "enabled");
 
@@ -50,7 +54,7 @@ public class ExplosionParticles implements CommandExecutor, TabCompleter {
             }
 
             if(args[0].equalsIgnoreCase("disable")) {
-                ((Player) sender).getPersistentDataContainer().remove(Main.explosionparticleskey);
+                pdc.remove(BlockPhysics.explosionparticleskey);
 
                 sender.sendMessage("Realistic explosion particles " + ChatColor.RED + "disabled");
 
@@ -65,7 +69,7 @@ public class ExplosionParticles implements CommandExecutor, TabCompleter {
     }
 
     @Override
-    public List<String> onTabComplete(CommandSender sender, Command cmd, String label, String[] args) {
+    public List<String> onTabComplete(CommandSender sender, Command cmd, String label, String @NotNull [] args) {
         final List<String> completions = new ArrayList<>();
 
         completions.add("enable");
