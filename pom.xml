@@ -37,7 +37,7 @@
                     <createDependencyReducedPom>false</createDependencyReducedPom>
                     <relocations>
                         <relocation>
-                            <pattern>com.jeff_media.customblockdata.CustomBlockData</pattern>
+                            <pattern>com.jeff_media.customblockdata.customblockdata</pattern>
                             <shadedPattern>me.hypercodec.physics.CustomBlockData</shadedPattern>
                         </relocation>
                     </relocations>
@@ -73,13 +73,13 @@
         <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot-api</artifactId>
-            <version>1.19-R0.1-SNAPSHOT</version>
+            <version>1.21.4-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>com.jeff_media</groupId>
-            <artifactId>CustomBlockData</artifactId>
-            <version>1.0.5</version>
+            <groupId>com.jeff-media</groupId>
+            <artifactId>custom-block-data</artifactId>
+            <version>2.2.3</version>
             <scope>compile</scope>
         </dependency>
     </dependencies>
